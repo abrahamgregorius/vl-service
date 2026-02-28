@@ -1,0 +1,6 @@
+
+{
+    "version": 2,
+    "builds": [{ "src": "index.js", "use": "@vercel/node" }],
+    "routes": [{ "src": "/v1/kyc/verify-nik", "dest": "/index.js" }]
+}
