@@ -1,13 +1,12 @@
-const express = require("express");
-const bodyParser = require("body-parser");
-const { createClient } = require("@supabase/supabase-js");
+import express from "express";
+import bodyParser from "body-parser";
+import { createClient } from "@supabase/supabase-js";
 
 const app = express();
 app.use(bodyParser.json());
 
-// Konfigurasi Supabase
-const SUPABASE_URL = "https://zzulibfwywxjxlmtkbxr.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp6dWxpYmZ3eXd4anhsbXRrYnhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyOTgxMjksImV4cCI6MjA4Nzg3NDEyOX0.p8OXSSGAOlgsS7OmxdPmeqX3OF-6VwuY6mmiYvE7nnc";
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 app.post("/v1/kyc/verify-nik", async (req, res) => {
@@ -36,7 +35,5 @@ app.post("/v1/kyc/verify-nik", async (req, res) => {
     }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
+
+export default app;
