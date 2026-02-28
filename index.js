@@ -20,16 +20,16 @@ app.post("/v1/kyc/verify-nik", async (req, res) => {
             .select("*")
             .eq("nik", nik)
             .single();
+        if (error && error.code === "PGRST116") {
+            return res.status(404).json({ error: "NIK tidak ditemukan" });
+        }
         if (error) {
-            if (error.code === "PGRST116") {
-                return res.status(404).json({ error: "Data tidak ditemukan" });
-            }
             return res.status(500).json({ error: "Supabase error", detail: error.message });
         }
         if (!data) {
-            return res.status(404).json({ error: "Data tidak ditemukan" });
+            return res.status(404).json({ error: "NIK tidak ditemukan" });
         }
-        res.json(data);
+        return res.status(200).json(data);
     } catch (err) {
         res.status(500).json({ error: "Server error", detail: err.message });
     }
