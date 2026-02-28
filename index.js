@@ -28,7 +28,7 @@ app.post("/v1/kyc/verify-nik", async (req, res) => {
             return res.status(500).json({ error: "Supabase error", detail: error.message });
         }
         if (!data) {
-            return res.status(404).json({ error: "Data tidak ditemukan" });~
+            return res.status(404).json({ error: "Data tidak ditemukan" });
         }
         res.json(data);
     } catch (err) {
