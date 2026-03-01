@@ -1,20 +1,32 @@
 import express from "express";
 import bodyParser from "body-parser";
+import multer from "multer";
 import { createClient } from "@supabase/supabase-js";
 
 const app = express();
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+const upload = multer();
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-app.post("/v1/kyc/verify-nik", async (req, res) => {
+app.post("/v1/kyc/verify-nik", upload.none(), async (req, res) => {
     const { nik } = req.body;
     if (!nik) {
         return res.status(400).json({ error: "nik wajib diisi" });
     }
     try {
+        // 1. Identity Verification (simulasi ZOLOZ)
+        let identityScore = 0;
+        let livenessScore = 0;
+        let riskScore = 0;
+        let complianceScore = 0;
+        let decision = "";
+        let reason = [];
+
+        // Simulasi: NIK valid di database = identity 50
         const { data, error } = await supabase
             .from("kyc_ktp")
             .select("*")
@@ -29,11 +41,56 @@ app.post("/v1/kyc/verify-nik", async (req, res) => {
         if (!data) {
             return res.status(404).json({ error: "NIK tidak ditemukan" });
         }
-        return res.status(200).json(data);
+        identityScore = 50;
+        reason.push("NIK valid di database");
+
+        // Simulasi: Liveness detection (random 25-30)
+        livenessScore = Math.floor(Math.random() * 6) + 25;
+        reason.push("Liveness detection sukses");
+
+        // Simulasi: Risk analysis (IP/device, random 15-20)
+        riskScore = Math.floor(Math.random() * 6) + 15;
+        reason.push("Device/IP aman");
+
+        // Simulasi: Compliance check (validasi NIK, random 0-5)
+        complianceScore = Math.floor(Math.random() * 6);
+        reason.push("Tidak terindikasi sanction list");
+
+        // Final Trust Score
+        const finalScore = identityScore + livenessScore + riskScore + complianceScore;
+        if (finalScore >= 85) {
+            decision = "Auto-Approved";
+        } else if (finalScore >= 60) {
+            decision = "Manual Review";
+        } else {
+            decision = "Auto-Rejected";
+        }
+
+        return res.status(200).json({
+            nik: data.nik,
+            nama: data.nama,
+            tempat_lahir: data.tempat_lahir,
+            tanggal_lahir: data.tanggal_lahir,
+            jenis_kelamin: data.jenis_kelamin,
+            alamat: data.alamat,
+            rt: data.rt,
+            rw: data.rw,
+            kelurahan: data.kelurahan,
+            kecamatan: data.kecamatan,
+            kota_kabupaten: data.kota_kabupaten,
+            provinsi: data.provinsi,
+            agama: data.agama,
+            status_perkawinan: data.status_perkawinan,
+            pekerjaan: data.pekerjaan,
+            kewarganegaraan: data.kewarganegaraan,
+            masa_berlaku: data.masa_berlaku,
+            final_trust_score: finalScore,
+            decision,
+            reason
+        });
     } catch (err) {
         res.status(500).json({ error: "Server error", detail: err.message });
     }
 });
-
 
 export default app;
